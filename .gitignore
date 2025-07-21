@@ -216,3 +216,23 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,node
+
+# Local environment variables file
+.env.local
+# Local environment variables file for development
+.env.development.local
+# Local environment variables file for test
+.env.test.local 
+# Local environment variables file for production
+.env.production.local
+# Local environment variables file for staging
+.env.staging.local  
+# Local environment variables file for production staging
+.env.production.staging.local 
+# Local environment variables file for production development
+.env.production.development.local
+# Local environment variables file for production test
+.env.production.test.local 
+.venv
+# Python virtual environment directory
+venv
