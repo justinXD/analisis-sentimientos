@@ -1,11 +1,13 @@
 import json
 import traceback
 from support.ComprehendClass import ComprehendClass
+from support.llm_class import LLMModel
 
 def handler(event, context):
     try:
         print(event)
         comprehend = ComprehendClass()
+        llm = LLMModel()
         text = "Excelente lugar para entrenar, correr, caminar andar en bici o pasear al perro."
         language = comprehend.detect_languages(text)
         language_code = language[0]["LanguageCode"]
