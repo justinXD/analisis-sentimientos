@@ -160,11 +160,12 @@ system_prompt = """
             IMPORTANTE: tu formato de respuesta SIEMPRE SERA un objeto JSON como en los ejemplos anteriores, NO agreges nada más, ni [], SIN excepciones.
             Recuerda: las claves de las propiedades de respuesta SIEMPRE debes escribirlas con comilla doble ("")
             """.replace("@@INDIFICADORES", INDIFICADORES).replace("@@LIST_OF_SENTIMENTS", LIST_OF_SENTIMENTS)
+MODEL_ID = os.environ["MODEL_ID"]
 
 class LLMModel:
     def __init__(self, region_name='us-east-1'):
         self.client = boto3.client('bedrock-runtime', region_name=region_name)
-        self._model_id = os.getenv("MODEL_ID")
+        self._model_id = MODEL_ID
         self._config = {"maxTokens": 10000, "topP": 0.9, "topK": 20, "temperature": 0.2}
 
     def invoke_llm(self, text_to_analyze: str, max_retries: int = 3):
