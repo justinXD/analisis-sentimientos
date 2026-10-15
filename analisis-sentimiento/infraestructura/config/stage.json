@@ -1,0 +1,16 @@
+{
+  "project": "sentiment",
+  "env_name": "stage",
+  "log_retention_days": 30,
+  "cors_origins": ["https://stage.sentiment.example.com"],
+  "bedrock_model_id": "<MODEL_ID_A_CALIBRAR>",
+  "ses_sender_email": "no-reply-stage@sentiment.example.com",
+  "distributed_map_max_concurrency": 4,
+  "llm_fanout_max_concurrency": 5,
+  "analyze_llm_reserved_concurrency": 40,
+  "queue_visibility_timeout_seconds": 180,
+  "queue_max_receive_count": 3,
+  "stuck_threshold_seconds": 900,
+  "data_ttl_days": 90,
+  "waf_mode": "BLOCK"
+}

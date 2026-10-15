@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentiment.ejemplo.com/schemas/submit_request.schema.json",
+  "title": "SubmitRequest",
+  "description": "Contrato de validación del cuerpo de POST /v1/analyses (Requirements 3.1, 3.3, 3.8, 3.11). Allow-list estricta: cualquier campo no declarado provoca el rechazo del Lote completo. El enum de 'indificador' se mantiene sincronizado con la fuente única sentiment.prompts.indificadores.enum_values() mediante la prueba de deriva tests/schemas/test_schema_enum_single_source.py (Requirement 17.14).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["indificador", "respuesta"],
+        "properties": {
+          "indificador": {
+            "type": "string",
+            "description": "Categoría de la pregunta de encuesta. Enum cerrado de 11 valores derivado de sentiment.prompts.indificadores (fuente única, Requirement 17.14). Comparación sensible a mayúsculas y minúsculas (criterio 3.8).",
+            "enum": [
+              "Calidad de Vida y Trabajo",
+              "Compensación y Beneficios",
+              "Comunicación",
+              "Confianza en la Organización",
+              "Desarrollo Profesional",
+              "Efectividad de Liderazgo",
+              "Entorno Físico de Trabajo",
+              "Espíritu de Equipo y Colaboración",
+              "Identidad y Compromiso",
+              "Reconocimiento",
+              "Satisfacción en el Puesto"
+            ]
+          },
+          "respuesta": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 5000,
+            "$comment": "maxLength de JSON Schema cuenta CARACTERES; el límite real del criterio 3.10 es de 5000 BYTES codificados en UTF-8. Este maxLength es un primer guard (una cadena <= 5000 bytes nunca supera 5000 caracteres, así que no produce falsos rechazos). Api_Submit revalida la longitud en bytes con len(respuesta.encode('utf-8')) y emite RESPONSE_TOO_LONG cuando corresponde."
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "survey_name": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "notify_email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "$comment": "Criterio 3.12. 'format' solo valida de forma efectiva cuando el validador usa un format-checker (jsonschema FormatChecker); Api_Submit habilita la verificación de 'email'."
+        },
+        "webhook_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "maxLength": 2048,
+          "$comment": "Criterio 3.11: el esquema de URL debe ser https (nunca HTTP plano) y la longitud no puede exceder 2048 caracteres."
+        }
+      }
+    }
+  }
+}

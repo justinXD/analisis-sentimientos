@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentiment.ejemplo.com/schemas/consolidated_output.schema.json",
+  "title": "ConsolidatedOutput",
+  "description": "Documento_Consolidado escrito por aggregate_results en el prefijo outputs/ y servido por la Presigned_URL de descarga (Requirements 7.4, 10.3, 10.4, 12.7, 12.8). El array 'items' conserva el orden original (ordenado por 'index') y cada entrada valida contra item_result.schema.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "analysis_id",
+    "tenant_id",
+    "status",
+    "item_count",
+    "done_count",
+    "failed_count",
+    "skipped_count",
+    "started_at",
+    "resumen_por_indificador",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "analysis_id": {
+      "type": "string",
+      "description": "ULID de 26 caracteres (Crockford Base32) del Lote.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "survey_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "status": {
+      "type": "string",
+      "description": "Estado_Terminal (Lote). Un Documento_Consolidado solo existe para Lotes terminales.",
+      "enum": ["COMPLETED", "COMPLETED_WITH_ERRORS", "FAILED", "EXPIRED"]
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000
+    },
+    "done_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failed_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "skipped_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resumen_por_indificador": {
+      "type": "object",
+      "description": "Resumen agregado por indificador. Las claves son valores del enum de Indificadores presentes en el Lote.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["total", "sentimiento_general", "sentimientos_top"],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sentimiento_general": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["Positivo", "Negativo", "Neutral", "Mixto"],
+            "properties": {
+              "Positivo": { "type": "integer", "minimum": 0 },
+              "Negativo": { "type": "integer", "minimum": 0 },
+              "Neutral": { "type": "integer", "minimum": 0 },
+              "Mixto": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "sentimientos_top": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["sentimiento", "count"],
+              "properties": {
+                "sentimiento": { "type": "string" },
+                "count": { "type": "integer", "minimum": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 1000,
+      "items": {
+        "$ref": "https://sentiment.ejemplo.com/schemas/item_result.schema.json"
+      }
+    }
+  }
+}

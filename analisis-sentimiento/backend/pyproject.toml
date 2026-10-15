@@ -1,0 +1,142 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentiment"
+version = "0.1.0"
+description = "Pipeline serverless de análisis de sentimiento (núcleo de aplicación)."
+requires-python = "==3.12.*"
+# Dependencias de runtime. Las versiones exactas (pineadas) viven en
+# requirements.txt, que es la fuente de verdad para el empaquetado reproducible
+# de las Lambdas y la Lambda Layer. Aquí sólo se declara el conjunto, con un
+# piso de versión, para la resolución local.
+dependencies = [
+    "aws-lambda-powertools>=3.4.0",
+    "pydantic>=2.9.2",
+    "jsonschema>=4.23.0",
+    "python-ulid>=2.7.0",
+]
+
+[project.optional-dependencies]
+# Herramientas de desarrollo y pruebas. No se empaquetan en las Lambdas.
+dev = [
+    "ruff>=0.7.1",
+    "mypy>=1.13.0",
+    "pytest>=8.3.3",
+    "pytest-cov>=5.0.0",
+    "hypothesis>=6.115.3",
+    "moto>=5.0.18",
+    "boto3>=1.35.49",
+    "types-jsonschema>=4.23.0.20240813",
+    "boto3-stubs>=1.35.49",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+# Los contratos JSON Schema y el system_prompt versionado son datos del paquete:
+# deben empaquetarse junto al código para que importlib.resources los encuentre
+# en la Lambda Layer y en instalaciones del paquete, no solo en el checkout.
+"sentiment.schemas" = ["*.schema.json"]
+"sentiment.prompts" = ["*.md"]
+
+# ---------------------------------------------------------------------------
+# Ruff: linter y formateador. Objetivo Python 3.12.
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# Conjunto de reglas. `T20` (flake8-print) incluye T201 (`print`) y T203
+# (`pprint`): el uso de `print` es un error de lint que rompe el Pipeline_CI
+# (Requirement 17.7). El logging estructurado con redacción de PII lo sustituye.
+select = [
+    "E",    # pycodestyle (errores)
+    "F",    # pyflakes
+    "W",    # pycodestyle (advertencias)
+    "I",    # isort (orden de imports)
+    "N",    # pep8-naming (snake_case de módulos y símbolos, Requirement 17.3)
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "C4",   # flake8-comprehensions
+    "T20",  # flake8-print  -> T201 prohíbe `print` (Requirement 17.7)
+    "SIM",  # flake8-simplify
+    "RUF",  # reglas propias de ruff
+]
+# T201 nunca se ignora: es un requisito de calidad del proyecto.
+
+[tool.ruff.lint.per-file-ignores]
+# En las pruebas se permiten aserciones; el resto de reglas, incluida T201,
+# siguen aplicando (las pruebas tampoco deben usar `print`).
+"tests/**/*.py" = ["S101"]
+# Los dobles de prueba del cliente de boto3 (p. ej. el fake de Comprehend) deben
+# reproducir la firma real de la API de AWS, cuyos parámetros son PascalCase
+# (`TextList`, `LanguageCode`). N803 (argumento en minúsculas) no aplica a esos
+# métodos: renombrarlos rompería la correspondencia con el contrato que simulan.
+"tests/adapters/test_comprehend_adapter.py" = ["S101", "N803"]
+# El catálogo de sentimientos (LIST_OF_SENTIMENTS) se conserva verbatim respecto
+# del código legado, sin cambios semánticos (Requirement 17.13). El texto legado
+# contiene espacios al final de algunas líneas dentro del literal; se ignora
+# W291 sólo en este archivo para no alterar el contenido del catálogo.
+"src/sentiment/prompts/sentiment_catalog.py" = ["W291"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["sentiment"]
+
+# ---------------------------------------------------------------------------
+# Mypy: verificación estática de tipos en modo estricto (Requirement 17.6).
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+no_implicit_reexport = true
+show_error_codes = true
+# `../scripts` entra en mypy_path para que mypy resuelva `calibrate_bedrock`
+# igual que pytest lo resuelve en runtime (los tests insertan scripts/ en sys.path):
+# el script vive en la raíz del repo, fuera del paquete `sentiment`.
+mypy_path = "src:../scripts"
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# El código legado restante (index.py) ya pasa `ruff` (incluida la prohibición de
+# `print`, T201) y ya no lee `MODEL_ID` a nivel de módulo tras la tarea 1.4. Sigue
+# excluido de `mypy --strict` únicamente porque aún le faltan las anotaciones de
+# tipos completas: tiene funciones sin anotar (`no-untyped-def`). Esa migración de
+# tipos pertenece a la tarea 1.2; al completarla se retira este override.
+# `adapters/bedrock_adapter.py` ya NO figura aquí: tras la tarea 6.3 implementa el
+# puerto `LlmAnalyzer` con tipado completo. `adapters/comprehend_adapter.py`
+# tampoco: tras la tarea 6.2 implementa el puerto `SentimentDetector` con tipado
+# completo y pasa `mypy --strict`.
+module = [
+    "sentiment.index",
+]
+ignore_errors = true
+
+# ---------------------------------------------------------------------------
+# Pytest.
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra --strict-markers --strict-config"
+# Markers registrados. `--strict-markers` convierte en error cualquier marker no
+# declarado aquí, de modo que esta lista es la fuente única de verdad.
+#   integration: pruebas end-to-end contra un stack REALMENTE desplegado en `dev`
+#     (DynamoDB/S3/Step Functions/API Gateway reales). Se SALTAN (skip) de forma
+#     limpia cuando no hay stack ni credenciales (ver backend/tests/integration/).
+markers = [
+    "integration: pruebas contra un stack dev desplegado (requieren credenciales AWS y INTEGRATION_STACK_ENV; ver backend/tests/integration/README.md)",
+    "load: pruebas de carga/concurrencia multi-tenant contra un stack dev desplegado (requieren credenciales AWS, INTEGRATION_STACK_ENV e INTEGRATION_TENANT_TOKENS; se SALTAN sin stack; ver backend/tests/load/README.md)",
+]

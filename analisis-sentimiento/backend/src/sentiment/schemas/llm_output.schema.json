@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentiment.ejemplo.com/schemas/llm_output.schema.json",
+  "title": "LlmOutput",
+  "description": "Contrato de validación de la salida del Modelo_Bedrock para un Ítem (Requirement 7.4). Toda salida del modelo que no valide contra este esquema es LLM_OUTPUT_INVALID (criterios 7.5, 9.17), una condición permanente no reintentable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["Indificador", "Respuesta", "sentimientos", "explicacion"],
+  "properties": {
+    "Indificador": {
+      "type": "string"
+    },
+    "Respuesta": {
+      "type": "string"
+    },
+    "sentimientos": {
+      "type": "array",
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 60
+      }
+    },
+    "explicacion": {
+      "type": "string",
+      "maxLength": 4000
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "Regla de negocio: una lista 'sentimientos' vacía implica 'explicacion' vacía (criterio 7.6). Cuando no se detecta ninguna emoción, no debe haber justificación.",
+      "if": {
+        "properties": {
+          "sentimientos": { "maxItems": 0 }
+        }
+      },
+      "then": {
+        "properties": {
+          "explicacion": { "maxLength": 0 }
+        }
+      }
+    }
+  ]
+}

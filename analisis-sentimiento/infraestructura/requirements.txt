@@ -1,0 +1,8 @@
+# Dependencias de la Infraestructura (AWS CDK en Python), pineadas de forma
+# exacta para que `cdk synth` sea reproducible entre entornos y en el
+# Pipeline_CI (Requirement 17.5/17.18).
+#
+# NO contiene secretos (Requirement 17.20): solo librerías de síntesis de CDK.
+
+aws-cdk-lib==2.214.0
+constructs==10.4.2

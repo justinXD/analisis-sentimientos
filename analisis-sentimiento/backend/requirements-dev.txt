@@ -1,0 +1,24 @@
+# Dependencias de DESARROLLO y PRUEBAS, pineadas de forma exacta
+# (Requirement 17.11). No se empaquetan en las Lambdas ni en la Layer.
+#
+# Incluye el runtime para poder ejecutar las pruebas en local/CI.
+-r requirements.txt
+
+# Linter / formateador y verificación estática de tipos (Requirement 17.6, 17.7).
+ruff==0.7.1
+mypy==1.13.0
+
+# Pruebas: unitarias, de propiedades (Hypothesis) y de contrato (moto).
+pytest==8.3.3
+pytest-cov==5.0.0
+hypothesis==6.115.3
+moto==5.0.18
+
+# boto3/botocore sólo para desarrollo: en producción los provee el runtime de
+# Lambda. Se pinean para que las pruebas de contrato con moto sean reproducibles.
+boto3==1.35.49
+botocore==1.35.49
+
+# Stubs de tipos para `mypy --strict`.
+types-jsonschema==4.23.0.20240813
+boto3-stubs==1.35.49

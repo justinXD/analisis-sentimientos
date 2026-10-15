@@ -1,0 +1,51 @@
+# --- Kiro (specs, steering, hooks, settings) ---
+.kiro/
+
+# --- Secrets and credentials (never commit) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets*.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# --- AWS CDK ---
+cdk.out/
+.cdk.staging/
+# cdk.context.json SÍ se versiona (Requirement 17.23): es necesario para la
+# reproducibilidad de la síntesis entre entornos. No añadir aquí.
+
+# --- Lambda packaging artifacts ---
+*.zip
+.aws-sam/
+# Contenido generado de la Lambda Layer de dependencias (Requirement 17.22).
+# El código fuente de la Layer se versiona; el árbol instalado por pip no.
+layer/python/
+infraestructura/layer/python/
+
+# --- Node (CDK CLI tooling) ---
+node_modules/
+
+# --- OS / IDE ---
+.DS_Store
+.idea/
+.vscode/
+
+# temporal .github para evitar despliegue
+.github

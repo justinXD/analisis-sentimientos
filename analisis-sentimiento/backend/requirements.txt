@@ -1,0 +1,15 @@
+# Dependencias de RUNTIME del paquete `sentiment`, pineadas de forma exacta
+# para builds reproducibles (Requirement 17.11).
+#
+# Estas son las dependencias de terceros que se empaquetan en la Lambda Layer
+# compartida (diseño 14.3). `boto3`/`botocore` NO se incluyen aquí: ya vienen en
+# el runtime de Lambda y empaquetarlas añade ~50 MB; su versión de desarrollo se
+# fija en requirements-dev.txt.
+#
+# Nota: este archivo se regenerará con `pip-compile`/`uv` (con hashes) en la
+# tarea de CI (1.5); por ahora contiene los pines directos.
+
+aws-lambda-powertools==3.4.0
+pydantic==2.9.2
+jsonschema==4.23.0
+python-ulid==2.7.0

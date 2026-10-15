@@ -1,0 +1,11 @@
+# Dependencias de desarrollo/prueba de la Infraestructura, pineadas de forma
+# exacta para reproducibilidad en el Pipeline_CI (Requirement 17.5/17.18).
+#
+# Se instalan además de `requirements.txt` para ejecutar las
+# Pruebas_De_Infraestructura (assertions sobre el template de CloudFormation y
+# validaciones de la configuración por entorno). NO contiene secretos
+# (Requirement 17.20).
+
+-r requirements.txt
+
+pytest==8.3.3

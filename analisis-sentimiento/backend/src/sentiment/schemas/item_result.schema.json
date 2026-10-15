@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentiment.ejemplo.com/schemas/item_result.schema.json",
+  "title": "ItemResult",
+  "description": "Proyección exportable del resultado de un Ítem dentro del Documento_Consolidado (Requirements 7.4, 10.4). Cada entrada del array 'items' de consolidated_output.schema.json valida contra este esquema. El estado determina qué campos están presentes: DONE lleva sentimiento clásico y profundo; SKIPPED lleva sentimientos vacíos y explicación vacía; FAILED lleva un error_code del Catalogo_De_Errores.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["item_id", "index", "indificador", "respuesta", "status"],
+  "properties": {
+    "item_id": {
+      "type": "string",
+      "description": "Identificador determinista del Ítem: {analysis_id}#{index:05d}.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}#[0-9]{5}$"
+    },
+    "index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999,
+      "description": "Posición 0-based del Ítem en el array 'items' del payload original."
+    },
+    "indificador": {
+      "type": "string"
+    },
+    "respuesta": {
+      "type": "string",
+      "maxLength": 5000
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DONE", "FAILED", "SKIPPED"],
+      "description": "Estado_Terminal (Ítem). PENDING es no terminal y no aparece en un resultado consolidado."
+    },
+    "language_code": {
+      "type": "string",
+      "description": "Código ISO 639-1 del idioma detectado por Comprehend, p.ej. 'es'.",
+      "minLength": 2,
+      "maxLength": 10
+    },
+    "language_confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "sentimientoGeneral": {
+      "type": "string",
+      "description": "Etiqueta de sentimiento clásico de Comprehend. Nombre conservado del código legado por compatibilidad con consumidores existentes.",
+      "enum": ["Positivo", "Negativo", "Neutral", "Mixto"]
+    },
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["positive", "negative", "neutral", "mixed"],
+      "properties": {
+        "positive": { "type": "number", "minimum": 0, "maximum": 1 },
+        "negative": { "type": "number", "minimum": 0, "maximum": 1 },
+        "neutral": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mixed": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "sentimientos": {
+      "type": "array",
+      "description": "Lista de emociones concretas (análisis profundo). Deduplicada y en minúsculas; vacía si no se detectó ninguna o si el Ítem fue SKIPPED/FAILED.",
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "explicacion": {
+      "type": "string",
+      "description": "Justificación del análisis profundo. Cadena vacía cuando 'sentimientos' está vacío.",
+      "maxLength": 4000
+    },
+    "model_id": {
+      "type": "string"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error_code": {
+      "type": "string",
+      "description": "Código del Catalogo_De_Errores registrado cuando status = FAILED. No se emite ninguno fuera de esta enumeración (familia de fallos de procesamiento).",
+      "enum": [
+        "INPUT_READ_FAILED",
+        "COMPREHEND_ITEM_FAILED",
+        "COMPREHEND_RESULT_MISSING",
+        "LLM_INPUT_REJECTED",
+        "LLM_OUTPUT_INVALID",
+        "TASK_INPUT_INVALID",
+        "RETRIES_EXHAUSTED",
+        "ORPHANED_AFTER_MAP",
+        "EXECUTION_ABANDONED",
+        "AGGREGATION_FAILED"
+      ]
+    }
+  }
+}
