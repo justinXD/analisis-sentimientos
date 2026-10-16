@@ -49,3 +49,6 @@ node_modules/
 
 # temporal .github para evitar despliegue
 .github
+
+# resultados auditoria de seguridad y PoCs
+.security-audit
